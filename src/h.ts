@@ -1,8 +1,8 @@
 import { Observable} from 'rxjs/Observable';
 
-import isEqual from 'lodash/isEqual'
+import isEqual from 'lodash/isEqual';
 
-export default function h(tag, attrs, ...children) {
+export default function h(tag: string, attrs: Object | string, children=[]): Node {
   if (tag==='txt' && typeof attrs === 'string') {
     return document.createTextNode(attrs);
   }
@@ -23,14 +23,15 @@ export default function h(tag, attrs, ...children) {
         }
       }
     }
-    children = children.reduce((acc, cv) => acc.concat(cv), []);
+
     children.forEach(child => {
       if (child instanceof Observable) {
         let placeholder = document.createComment('placeholder');
         element.appendChild(placeholder);
         observables_zip_children.push({ observable: child, position: placeholder, elements: [] });
         let subscription = child.subscribe(([v, renderer]) => {
-          v = [].concat(v).filter(v => v);
+          // 这里不做非空过滤，保留使用者对空值的处理能力
+          v = [].concat(v);//.filter(v => v);
           let ozc = observables_zip_children.find(ozc => ozc.observable==child);
           let position = ozc.position;
           let old_elements = ozc.elements.slice();
@@ -41,35 +42,19 @@ export default function h(tag, attrs, ...children) {
                 old_elements.splice(old_elements.indexOf(found), 1);
                 return { element: found.element, data: vi };
               }
+              // 这里 renderer(vi) 可能得到的是空值，或者非 Node 元素
               return { element: renderer(vi), data: vi };
             });
-            ozc.elements.slice().forEach(ele => element.insertBefore(ele.element, position));
+            // 因为 ozc.elements 里可能有非 Node 元素，避免 insertBefore 出错，所以要在这里进行过滤
+            ozc.elements.slice().filter(ele => ele instanceof Node).forEach(ele => element.insertBefore(ele.element, position));
           } else {
             ozc.elements = [];
           }
-          old_elements.forEach(oe => {
+          // 因为 ozc.elements 里可能有非 Node 元素，避免 remove 出错，所以要在这里进行过滤
+          old_elements.filter(oe => oe instanceof Node).forEach(oe => {
             dh(oe.element);
             oe.element.remove();
           });
-          // let old_data = ozc.old_data;
-          // ozc.data = v;
-          // -----------------------
-          // if (!v || (Object.prototype.toString.call(v)==='[object Array]' && v.length===0)) {
-          //   ozc.elements = [{element: document.createComment('placeholder'), data: v}];
-          //   ozc.elements.slice().reverse().forEach(ele => element.insertBefore(ele.element, old_elements[0].element));
-          // } else if (Object.prototype.toString.call(v)!=='[object Array]') {
-          //   if (!lodash.isEqual(old_data, v)) {
-          //     ozc.elements = [].concat(renderer(v));
-          //     ozc.elements.slice().reverse().forEach(ele => element.insertBefore(ele, old_elements[0]));
-          //   }
-          // } else {
-          //   old_data = [].concat(old_data);
-          //   v.map(vi => {
-          //     let found = old_data.find(o => lodash.isEqual(vi, 0));
-
-          //   });
-          // }
-          // old_elements.forEach(oe => oe.remove());
         });
         subscriptions.push(subscription);
       } else {
@@ -82,7 +67,7 @@ export default function h(tag, attrs, ...children) {
   }
 }
 
-function dh(ele) {
+function dh(ele: Node) {
   (ele['__subscriptions'] || []).forEach(sub => sub.unsubscirbe());
   ([].slice.call(ele.childNodes)).forEach(cn => dh(cn));
 }
