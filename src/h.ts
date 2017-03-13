@@ -1,23 +1,27 @@
-import { Observable} from 'rxjs/Observable';
+import { Observable } from 'rxjs/Observable';
+import { Subscription } from 'rxjs/Subscription';
 
 import isEqual from 'lodash/isEqual';
 
-export default function h(tag: string, attrs: Object | string, children=[]): Node {
+// TODO: 加入生命周期，如 onAttach onDetach
+
+export default function h(tag: string, attrs: Object | string, children=[]): Node & { __subscriptions: Subscription[] } {
+  let __subscriptions: Subscription[] = [];
   if (tag==='txt' && typeof attrs === 'string') {
-    return document.createTextNode(attrs);
+    return Object.assign(document.createTextNode(attrs), { __subscriptions });
   }
   if (tag==='comment' && typeof attrs === 'string') {
-    return document.createComment(attrs);//
+    return Object.assign(document.createComment(attrs), { __subscriptions });//
   }
   if (typeof attrs === 'object') {
     let element = document.createElement(tag);
     let observables_zip_children = [];
-    let subscriptions = element['__subscriptions'] = [];
+    // let subscriptions = element['__subscriptions'] = [];
     for (let key in attrs) {
       if (attrs.hasOwnProperty(key)) {
         let value = attrs[key];
         if (value instanceof Observable) {
-          subscriptions.push(value.subscribe(v => element.setAttribute(key, v)));
+          __subscriptions.push(value.subscribe(v => element.setAttribute(key, v)));
         } else {
           element.setAttribute(key, value);
         }
@@ -37,7 +41,8 @@ export default function h(tag: string, attrs: Object | string, children=[]): Nod
           let old_elements = ozc.elements.slice();
           if (v.length>0) {
             ozc.elements = v.map(vi => {
-              let found = old_elements.find(o => isEqual(vi, o.data));
+              // 使用 key 加快比较速度
+              let found = old_elements.find(o => isEqual(vi['key'], o.data['key']) && isEqual(vi, o.data));
               if (found) {
                 old_elements.splice(old_elements.indexOf(found), 1);
                 return { element: found.element, data: vi };
@@ -56,12 +61,12 @@ export default function h(tag: string, attrs: Object | string, children=[]): Nod
             oe.element.remove();
           });
         });
-        subscriptions.push(subscription);
+        __subscriptions.push(subscription);
       } else {
         element.appendChild(child);
       }
     });
-    return element;
+    return Object.assign(element, { __subscriptions });
   } else {
     throw new Error('Unknown arguments for h method!');
   }
