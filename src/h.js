@@ -1,14 +1,17 @@
+import Rx from 'rxjs/Rx';
+let Observable = Rx.Observable;
+
 function dh(node) {
   node.subscriptions.forEach(subs => subs.unsubscribe());
 }
 
 function h(tag, attrs, ...children) {
   children = children.reduce((rs, c) => rs.concat(c), []);
-  var element = document.createElement(tag);
-  var subscriptions = [];
-  for (var key in attrs) {
+  let element = document.createElement(tag);
+  let subscriptions = [];
+  for (let key in attrs) {
     if (attrs.hasOwnProperty(key)) {
-      var value = attrs[key];
+      let value = attrs[key];
       if (value instanceof Observable) {
         subscriptions.push(value.subscribe(v => element.setAttribute(key, v)));
       } else {
@@ -16,24 +19,24 @@ function h(tag, attrs, ...children) {
       }
     }
   }
-  for (var index = 0; index < children.length; index++) {
-    var child = children[index];
+  for (let index = 0; index < children.length; index++) {
+    let child = children[index];
     if (child instanceof Observable) {
       subscriptions.push(child.subscribe(c => {
-        var cnode = element.childNodes[index];
+        let cnode = element.childNodes[index];
         if (cnode) {
           if (c) {
-            element.replaceChild(cnode, c);
+            element.replaceChild(c, cnode);
           } else {
             dh(cnode);
-            var placeholder = document.createComment('placeholder for h');
-            element.replaceChild(cnode, placeholder);
+            let placeholder = document.createComment('placeholder for h');
+            element.replaceChild(placeholder, cnode);
           }
         } else {
           if (c) {
             element.appendChild(c);
           } else {
-            var placeholder = document.createComment('placeholder for h');
+            let placeholder = document.createComment('placeholder for h');
             element.appendChild(placeholder);
           }
         }
@@ -45,3 +48,5 @@ function h(tag, attrs, ...children) {
   element.subscriptions = subscriptions;
   return element;
 }
+
+export default h;
