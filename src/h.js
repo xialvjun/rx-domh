@@ -51,6 +51,25 @@ export default function h(tag, attrs, ...children) {
             dh(oe.element);
             oe.element.remove();
           });
+          // let old_data = ozc.old_data;
+          // ozc.data = v;
+          // -----------------------
+          // if (!v || (Object.prototype.toString.call(v)==='[object Array]' && v.length===0)) {
+          //   ozc.elements = [{element: document.createComment('placeholder'), data: v}];
+          //   ozc.elements.slice().reverse().forEach(ele => element.insertBefore(ele.element, old_elements[0].element));
+          // } else if (Object.prototype.toString.call(v)!=='[object Array]') {
+          //   if (!lodash.isEqual(old_data, v)) {
+          //     ozc.elements = [].concat(renderer(v));
+          //     ozc.elements.slice().reverse().forEach(ele => element.insertBefore(ele, old_elements[0]));
+          //   }
+          // } else {
+          //   old_data = [].concat(old_data);
+          //   v.map(vi => {
+          //     let found = old_data.find(o => lodash.isEqual(vi, 0));
+
+          //   });
+          // }
+          // old_elements.forEach(oe => oe.remove());
         });
         subscriptions.push(subscription);
       } else {
