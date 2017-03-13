@@ -1,52 +1,69 @@
-import Rx from 'rxjs/Rx';
-let Observable = Rx.Observable;
+import { Observable} from 'rxjs/Observable';
 
-function dh(node) {
-  node.subscriptions.forEach(subs => subs.unsubscribe());
-}
+import isEqual from 'lodash/isEqual'
 
-function h(tag, attrs, ...children) {
-  children = children.reduce((rs, c) => rs.concat(c), []);
-  let element = document.createElement(tag);
-  let subscriptions = [];
-  for (let key in attrs) {
-    if (attrs.hasOwnProperty(key)) {
-      let value = attrs[key];
-      if (value instanceof Observable) {
-        subscriptions.push(value.subscribe(v => element.setAttribute(key, v)));
-      } else {
-        element.setAttribute(key, value);
+export default function h(tag, attrs, ...children) {
+  if (tag==='txt' && typeof attrs === 'string') {
+    return document.createTextNode(attrs);
+  }
+  if (tag==='comment' && typeof attrs === 'string') {
+    return document.createComment(attrs);//
+  }
+  if (typeof attrs === 'object') {
+    let element = document.createElement(tag);
+    let observables_zip_children = [];
+    let subscriptions = element['__subscriptions'] = [];
+    for (let key in attrs) {
+      if (attrs.hasOwnProperty(key)) {
+        let value = attrs[key];
+        if (value instanceof Observable) {
+          subscriptions.push(value.subscribe(v => element.setAttribute(key, v)));
+        } else {
+          element.setAttribute(key, value);
+        }
       }
     }
-  }
-  for (let index = 0; index < children.length; index++) {
-    let child = children[index];
-    if (child instanceof Observable) {
-      subscriptions.push(child.subscribe(c => {
-        let cnode = element.childNodes[index];
-        if (cnode) {
-          if (c) {
-            element.replaceChild(c, cnode);
+    children = children.reduce((acc, cv) => acc.concat(cv), []);
+    children.forEach(child => {
+      if (child instanceof Observable) {
+        let placeholder = document.createComment('placeholder');
+        element.appendChild(placeholder);
+        observables_zip_children.push({ observable: child, position: placeholder, elements: [] });
+        let subscription = child.subscribe(([v, renderer]) => {
+          v = [].concat(v).filter(v => v);
+          let ozc = observables_zip_children.find(ozc => ozc.observable==child);
+          let position = ozc.position;
+          let old_elements = ozc.elements.slice();
+          if (v.length>0) {
+            ozc.elements = v.map(vi => {
+              let found = old_elements.find(o => isEqual(vi, o.data));
+              if (found) {
+                old_elements.splice(old_elements.indexOf(found), 1);
+                return { element: found.element, data: vi };
+              }
+              return { element: renderer(vi), data: vi };
+            });
+            ozc.elements.slice().forEach(ele => element.insertBefore(ele.element, position));
           } else {
-            dh(cnode);
-            let placeholder = document.createComment('placeholder for h');
-            element.replaceChild(placeholder, cnode);
+            ozc.elements = [];
           }
-        } else {
-          if (c) {
-            element.appendChild(c);
-          } else {
-            let placeholder = document.createComment('placeholder for h');
-            element.appendChild(placeholder);
-          }
-        }
-      }));
-    } else {
-      element.appendChild(child);
-    }
+          old_elements.forEach(oe => {
+            dh(oe.element);
+            oe.element.remove();
+          });
+        });
+        subscriptions.push(subscription);
+      } else {
+        element.appendChild(child);
+      }
+    });
+    return element;
+  } else {
+    throw new Error('Unknown arguments for h method!');
   }
-  element.subscriptions = subscriptions;
-  return element;
 }
 
-export default h;
+function dh(ele) {
+  (ele['__subscriptions'] || []).forEach(sub => sub.unsubscirbe());
+  ([].slice.call(ele.childNodes)).forEach(cn => dh(cn));
+}
