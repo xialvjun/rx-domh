@@ -1,0 +1,31 @@
+{
+  "name": "rx-domh",
+  "version": "0.0.1",
+  "description": "Create DOM element and bind observables on it.",
+  "main": "index.js",
+  "directories": {
+    "example": "examples"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xialvjun/rx-domh.git"
+  },
+  "keywords": [
+    "reactive",
+    "rxjs",
+    "dom"
+  ],
+  "author": "xialvjun@live.com",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/xialvjun/rx-domh/issues"
+  },
+  "homepage": "https://github.com/xialvjun/rx-domh#readme",
+  "dependencies": {
+    "lodash": "^4.*",
+    "rxjs": "^5.*"
+  }
+}
