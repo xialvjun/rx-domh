@@ -2,11 +2,12 @@
   "name": "rx-domh",
   "version": "0.0.1",
   "description": "Create DOM element and bind observables on it.",
-  "main": "index.js",
+  "main": "lib/h.js",
   "directories": {
     "example": "examples"
   },
   "scripts": {
+    "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -25,7 +26,6 @@
   },
   "homepage": "https://github.com/xialvjun/rx-domh#readme",
   "dependencies": {
-    "flyd": "^0.2.4",
     "lodash": "^4.*",
     "rxjs": "^5.*"
   },

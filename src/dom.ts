@@ -38,11 +38,6 @@ export function setAttribute(element: HTMLElement, name: string, value: any) {
     element[name] = value;
     return element;
   }
-  if (['value', 'checked'].indexOf(name) > -1 && element instanceof HTMLInputElement) {
-    element[name] = value;
-    // element.setAttribute(name, value);
-    return element;
-  }
   switch (name) {
     case 'class':
     case 'className':
@@ -50,6 +45,11 @@ export function setAttribute(element: HTMLElement, name: string, value: any) {
       return element;
     case 'style':
       element.style.cssText = styleListProcessor(value);
+      return element;
+    case 'checked':
+    case 'value':
+      element[name] = value;
+      // element.setAttribute(name, value);
       return element;
     default:
       element.setAttribute(name.replace(/[A-Z]/g, (match) => '-' + match.toLowerCase()), value);
