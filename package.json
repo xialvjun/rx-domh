@@ -25,7 +25,11 @@
   },
   "homepage": "https://github.com/xialvjun/rx-domh#readme",
   "dependencies": {
+    "flyd": "^0.2.4",
     "lodash": "^4.*",
     "rxjs": "^5.*"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.55"
   }
 }
