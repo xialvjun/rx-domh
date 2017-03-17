@@ -10,8 +10,9 @@ const _tocs = new Rx.BehaviorSubject();//.take(5);
 _tocs.next(tt);
 
 setInterval(()=>{
-  if (tt.length<10) {
-    tt = tt.concat({title:i+'', description: 'desc'+i});
+  let length = tt.length;
+  if (length<10) {
+    tt = tt.concat({title:length+'', description: 'desc'+length});
   } else {
     tt = tt.slice(0, 5);
   }

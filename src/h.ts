@@ -5,6 +5,7 @@ import 'rxjs/operator/map';
 import isEqual from 'lodash/isEqual';
 import flattenDeep from 'lodash/flattenDeep';
 import lowerCase from 'lodash/lowerCase';
+import cloneDeep from 'lodash/cloneDeep';
 
 import { setAttribute } from './dom';
 
@@ -85,10 +86,11 @@ function h(tag: string, attrs: Object, ...children: (Node | Observable<any | {da
             let found = old_elements.find(o => isEqual(vi['key'], o.data['key']) && isEqual(vi, o.data));
             if (found) {
               old_elements.splice(old_elements.indexOf(found), 1);
-              return { node: found.node, data: vi };
+              return { node: found.node, data: found.data };
             }
             // 这里 render(vi) 可能得到的是空值 null/undefined，或者非 Node 元素，虽然 hr 方法限制了参数类型
-            return { node: render(vi), data: vi };
+            // 这里需要 cloneDeep，因为用户可能修改 vi，例如 subject.value.abc=1; subject.next(subject.value)
+            return { node: render(vi), data: cloneDeep(vi) };
           });
           // TODO: 也许可以使用 DocumentFragment 来减少重绘。或者把 element 隐藏修改再显示
           element.style.display = 'none';

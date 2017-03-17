@@ -1,6 +1,6 @@
 {
   "name": "rx-domh",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Create DOM element and bind observables on it.",
   "main": "lib/h.js",
   "directories": {
