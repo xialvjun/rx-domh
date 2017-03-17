@@ -20,19 +20,20 @@ let showing_todos$ = Rx.Observable.combineLatest(todos$, route$, (todos, route)=
 let add_click$ = new Rx.Subject();
 add_click$.subscribe(e => {
   if (text_input.value) {
-    console.log(todos$.value)
     todos$.next(todos$.value.concat({content: text_input.value, completed: false}));
     text_input.value = '';
   }
 });
 
-// 其实不需要 distinctUntilChanged，因为 h 方法会比较
 const text_input = <input type="text" />
 
 const root = (
 <div>
   {hr(showing_todos$.map(todos=>todos.length>0), gt0 => gt0 ? (
-    <ul>{hr(showing_todos$, todo => <li style={todo.completed ? 'text-decoration:line-through;' : null} onclick={e=>{todo.completed=!todo.completed; todos$.next(todos$.value);}}>{todo.content}</li>)}</ul>
+    <ul>{hr(showing_todos$, todo => (
+      <li style={todo.completed ? 'text-decoration:line-through;' : null} 
+        onclick={e=>{todo.completed=!todo.completed; todos$.next(todos$.value);}}>{todo.content}</li>
+    ))}</ul>
   ) : (<div>No One, Please Add</div>))}
   <div>
     {text_input}
